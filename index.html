@@ -7,20 +7,51 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #282828;
+      background-color: #000; /* Fundo escuro para destacar a espiral */
       color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Espiral Triconcêntrica em movimento, com a linha transbordando */
+    .spiral {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 3000px; /* Aumenta o tamanho da espiral para que a linha transborde */
+      height: 3000px;
+      margin-top: -1500px; /* Ajusta para que a espiral fique parcialmente fora da tela */
+      margin-left: -1500px; /* Ajusta para que a espiral fique parcialmente fora da tela */
+      border-radius: 50%;
+      background: repeating-conic-gradient(
+        rgba(255, 255, 255, 0.05) 0deg 10deg,
+        rgba(255, 255, 255, 0.1) 10deg 20deg,
+        rgba(255, 255, 255, 0.15) 20deg 30deg
+      );
+      animation: spiral 15s linear infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    @keyframes spiral {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     .container {
       text-align: center;
       padding: 20px;
       border-radius: 10px;
-      background-color: #1f1f1f;
+      background-color: transparent;
       width: 400px;
       position: relative;
     }
@@ -81,7 +112,6 @@
       100% { transform: translateX(300px) translateY(-400px); }
     }
 
-    /* Barra de menu */
     #menuBar {
       position: absolute;
       top: 10px;
@@ -101,212 +131,208 @@
 </head>
 <body>
 
-<!-- ✅ BARRA DE MENU -->
-<div id="menuBar">
-  <span id="menuTitle">🎮 Aviator</span>
-  <span id="menuSaldo">Saldo: 1000</span>
-</div>
+  <!-- Espiral de fundo -->
+  <div class="spiral"></div>
 
-<div class="container">
-  <div id="title" class="hidden">Aviator</div>
-  <img id="plane" src="imagem.png" alt="Avião">
-
-  <div id="gameStatus">
-    <p id="multiplier">0x</p>
-    <p id="ganho">Ganho atual: 0</p>
+  <!-- Barra de menu -->
+  <div id="menuBar">
+    <span id="menuTitle">🎮 Aviator mozbet</span>
+    <span id="menuSaldo">Saldo: 1000</span>
   </div>
 
-  <div id="progressBar">
-    <div id="progress"></div>
+  <div class="container">
+    <div id="title" class="hidden">Aviator</div>
+    <img id="plane" src="imagem.png" alt="Avião">
+
+    <div id="gameStatus">
+      <p id="multiplier">0x</p>
+      <p id="ganho">Ganho atual: 0</p>
+    </div>
+
+    <div id="progressBar">
+      <div id="progress"></div>
+    </div>
+
+    <div class="controls">
+      <input type="number" id="betAmount" placeholder="Insira o valor da aposta" value="" disabled>
+      <button id="betBtn" onclick="placeBet()">Apostar</button>
+      <button id="withdrawBtn" onclick="withdraw()" disabled>Retirar</button>
+    </div>
   </div>
 
-  <div class="controls">
-    <input type="number" id="betAmount" placeholder="Insira o valor da aposta" value="" disabled>
-    <button id="betBtn" onclick="placeBet()">Apostar</button>
-    <button id="withdrawBtn" onclick="withdraw()" disabled>Retirar</button>
-  </div>
-</div>
+  <!-- Sons -->
+  <audio id="backgroundSound" loop>
+    <source src="som-fundo.mp3" type="audio/mp3">
+  </audio>
 
-<!-- ✅ SONS -->
-<audio id="backgroundSound" loop>
-  <source src="som-fundo.mp3" type="audio/mp3">
-</audio>
+  <audio id="aggressivePlaneSound">
+    <source src="som-voo-agressivo.mp3" type="audio/mp3">
+  </audio>
 
-<audio id="aggressivePlaneSound">
-  <source src="som-voo-agressivo.mp3" type="audio/mp3">
-</audio>
+  <script>
+    let multiplier = 1;
+    let saldo = 1000;
+    let aposta = 0;
+    let ganhoAtual = 0;
+    let gameStarted = false;
+    let gameInterval;
+    let gameTimeout;
+    let progressInterval;
+    let soundPlayed = false;
 
-<script>
-  let multiplier = 1;
-  let saldo = 1000;
-  let aposta = 0;
-  let ganhoAtual = 0;
-  let gameStarted = false;
-  let gameInterval;
-  let gameTimeout;
-  let progressInterval;
-  let soundPlayed = false;  // Variável para controlar o som do voo agressivo
+    const plane = document.getElementById("plane");
+    const multiplierDisplay = document.getElementById("multiplier");
+    const saldoDisplay = document.getElementById("menuSaldo");
+    const ganhoDisplay = document.getElementById("ganho");
+    const withdrawBtn = document.getElementById("withdrawBtn");
+    const betBtn = document.getElementById("betBtn");
+    const betAmountInput = document.getElementById("betAmount");
+    const progress = document.getElementById("progress");
 
-  const plane = document.getElementById("plane");
-  const multiplierDisplay = document.getElementById("multiplier");
-  const saldoDisplay = document.getElementById("menuSaldo");
-  const ganhoDisplay = document.getElementById("ganho");
-  const withdrawBtn = document.getElementById("withdrawBtn");
-  const betBtn = document.getElementById("betBtn");
-  const betAmountInput = document.getElementById("betAmount");
-  const progress = document.getElementById("progress");
+    const backgroundSound = document.getElementById("backgroundSound");
+    const aggressivePlaneSound = document.getElementById("aggressivePlaneSound");
 
-  const backgroundSound = document.getElementById("backgroundSound");
-  const aggressivePlaneSound = document.getElementById("aggressivePlaneSound");
-
-  // Inicia o som de fundo assim que a página for carregada
-  window.onload = () => {
-    // Tentativa de iniciar o som de fundo, mesmo em navegadores que restringem autoplay
-    backgroundSound.play().catch(() => {
-      // Caso não consiga tocar o som, tentamos novamente após uma interação do usuário
-      document.addEventListener('click', () => {
-        backgroundSound.play();
+    window.onload = () => {
+      backgroundSound.play().catch(() => {
+        document.addEventListener('click', () => {
+          backgroundSound.play();
+        });
       });
-    });
-    startGame();
-  };
+      startGame();
+    };
 
-  function startGame() {
-    if (gameStarted) return;
-    gameStarted = true;
+    function startGame() {
+      if (gameStarted) return;
+      gameStarted = true;
 
-    aposta = 0;
-    ganhoAtual = 0;
-    multiplier = 1;
-    updateDisplays();
+      aposta = 0;
+      ganhoAtual = 0;
+      multiplier = 1;
+      updateDisplays();
 
-    betAmountInput.disabled = false;
-    betBtn.disabled = false;
-    withdrawBtn.disabled = true;
+      betAmountInput.disabled = false;
+      betBtn.disabled = false;
+      withdrawBtn.disabled = true;
 
-    progress.style.transition = 'none';
-    progress.style.width = "100%";
-    setTimeout(() => {
-      progress.style.transition = 'width 1s linear';
-      let currentProgress = 100;
-      progressInterval = setInterval(() => {
-        currentProgress -= 10;
-        progress.style.width = `${currentProgress}%`;
-        if (currentProgress <= 0) {
-          clearInterval(progressInterval);
-          beginRound();
-        }
-      }, 1000);
-    }, 50);
-  }
-
-  function beginRound() {
-    betBtn.disabled = true;
-    betAmountInput.disabled = true;
-
-    if (aposta > 0) {
-      withdrawBtn.disabled = false;
+      progress.style.transition = 'none';
+      progress.style.width = "100%";
+      setTimeout(() => {
+        progress.style.transition = 'width 1s linear';
+        let currentProgress = 100;
+        progressInterval = setInterval(() => {
+          currentProgress -= 10;
+          progress.style.width = `${currentProgress}%`;
+          if (currentProgress <= 0) {
+            clearInterval(progressInterval);
+            beginRound();
+          }
+        }, 1000);
+      }, 50);
     }
 
-    // Resetando a flag de som
-    soundPlayed = false;
-
-    gameInterval = setInterval(() => {
-      multiplier += Math.random() * 0.1;
-      multiplierDisplay.textContent = `${multiplier.toFixed(2)}x`;
+    function beginRound() {
+      betBtn.disabled = true;
+      betAmountInput.disabled = true;
 
       if (aposta > 0) {
-        ganhoAtual = aposta * multiplier;
-        ganhoDisplay.textContent = `${ganhoAtual.toFixed(2)}`;
+        withdrawBtn.disabled = false;
       }
 
-      plane.style.transform = `translateX(-50%) translateY(-${multiplier * 4}px)`;
+      soundPlayed = false;
 
-      // Garantir que o som só toque quando o avião estiver pronto para decolar (multiplicador > 10 e posição inicial)
-      if (multiplier > 10 && !soundPlayed && plane.style.transform === "translateX(-50%) translateY(0px)") {
-        backgroundSound.pause();  // Pausa o som de fundo
-        aggressivePlaneSound.play(); // Toca o som agressivo
-        soundPlayed = true;  // Marque que o som já foi tocado
+      gameInterval = setInterval(() => {
+        multiplier += Math.random() * 0.1;
+        multiplierDisplay.textContent = `${multiplier.toFixed(2)}x`;
+
+        if (aposta > 0) {
+          ganhoAtual = aposta * multiplier;
+          ganhoDisplay.textContent = `${ganhoAtual.toFixed(2)}`;
+        }
+
+        plane.style.transform = `translateX(-50%) translateY(-${multiplier * 4}px)`;
+
+        if (multiplier > 10 && !soundPlayed && plane.style.transform === "translateX(-50%) translateY(0px)") {
+          backgroundSound.pause();
+          aggressivePlaneSound.play();
+          soundPlayed = true;
+        }
+
+      }, 100);
+
+      gameTimeout = setTimeout(() => {
+        clearInterval(gameInterval);
+        endGame(false);
+      }, 15000);
+    }
+
+    function placeBet() {
+      const valor = parseFloat(betAmountInput.value);
+      if (isNaN(valor) || valor <= 0) {
+        alert("Insira um valor válido para aposta.");
+        return;
+      }
+      if (saldo < valor) {
+        alert("Saldo insuficiente.");
+        return;
       }
 
-    }, 100);
-
-    gameTimeout = setTimeout(() => {
-      clearInterval(gameInterval);
-      endGame(false);
-    }, 15000);
-  }
-
-  function placeBet() {
-    const valor = parseFloat(betAmountInput.value);
-    if (isNaN(valor) || valor <= 0) {
-      alert("Insira um valor válido para aposta.");
-      return;
-    }
-    if (saldo < valor) {
-      alert("Saldo insuficiente.");
-      return;
-    }
-
-    aposta = valor;
-    saldo -= aposta;
-    saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-    betBtn.disabled = true;
-  }
-
-  function withdraw() {
-    if (aposta > 0 && ganhoAtual > 0) {
-      saldo += ganhoAtual;
+      aposta = valor;
+      saldo -= aposta;
       saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-      ganhoAtual = 0;
-      ganhoDisplay.textContent = "0";
-      aposta = 0;
-      withdrawBtn.disabled = true;
+      betBtn.disabled = true;
     }
-  }
 
-  function endGame(success) {
-    if (!success) {
-      // Parar o som de fundo imediatamente e tocar o som agressivo
-      backgroundSound.pause();
-      aggressivePlaneSound.play();
+    function withdraw() {
+      if (aposta > 0 && ganhoAtual > 0) {
+        saldo += ganhoAtual;
+        saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
+        ganhoAtual = 0;
+        ganhoDisplay.textContent = "0";
+        aposta = 0;
+        withdrawBtn.disabled = true;
+      }
+    }
 
-      plane.style.animation = "flyOut 1s forwards";
-      setTimeout(() => {
-        plane.style.animation = "none";
-        plane.style.transform = "translateX(-50%) translateY(0)";
+    function endGame(success) {
+      if (!success) {
+        backgroundSound.pause();
+        aggressivePlaneSound.play();
+
+        plane.style.animation = "flyOut 1s forwards";
+        setTimeout(() => {
+          plane.style.animation = "none";
+          plane.style.transform = "translateX(-50%) translateY(0)";
+          resetGame();
+        }, 3000);
+      } else {
         resetGame();
-      }, 3000);
-    } else {
-      resetGame();
+      }
     }
-  }
 
-  function resetGame() {
-    clearInterval(gameInterval);
-    clearTimeout(gameTimeout);
-    gameStarted = false;
-    ganhoAtual = 0;
-    aposta = 0;
-    multiplier = 1;
-    updateDisplays();
+    function resetGame() {
+      clearInterval(gameInterval);
+      clearTimeout(gameTimeout);
+      gameStarted = false;
+      ganhoAtual = 0;
+      aposta = 0;
+      multiplier = 1;
+      updateDisplays();
 
-    // Parar o som de fundo e garantir que ele seja reiniciado no próximo jogo
-    backgroundSound.pause();
-    backgroundSound.currentTime = 0; // Rewind para evitar duplicação
-    setTimeout(() => {
-      backgroundSound.play();
-    }, 100);
+      backgroundSound.pause();
+      backgroundSound.currentTime = 0;
+      setTimeout(() => {
+        backgroundSound.play();
+      }, 100);
 
-    setTimeout(startGame, 100);
-  }
+      setTimeout(startGame, 100);
+    }
 
-  function updateDisplays() {
-    multiplierDisplay.textContent = "0x";
-    saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-    ganhoDisplay.textContent = "0";
-  }
-</script>
+    function updateDisplays() {
+      multiplierDisplay.textContent = "0x";
+      saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
+      ganhoDisplay.textContent = "0";
+    }
+  </script>
 
 </body>
 </html>
