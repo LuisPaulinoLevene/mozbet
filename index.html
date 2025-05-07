@@ -213,7 +213,7 @@
 
     gameInterval = setInterval(() => {
       multiplier += Math.random() * 0.1;
-      multiplierDisplay.textContent = `Multiplicador: ${multiplier.toFixed(2)}x`;
+      multiplierDisplay.textContent = `${multiplier.toFixed(2)}x`;
 
       if (aposta > 0) {
         ganhoAtual = aposta * multiplier;
@@ -302,7 +302,7 @@
   }
 
   function updateDisplays() {
-    multiplierDisplay.textContent = "Multiplicador: 1x";
+    multiplierDisplay.textContent = "0x";
     saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
     ganhoDisplay.textContent = "0";
   }
