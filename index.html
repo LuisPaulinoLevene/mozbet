@@ -1,338 +1,280 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jogo Aviator - Simulação</title>
+  <title></title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #000; /* Fundo escuro para destacar a espiral */
-      color: #fff;
+      background-color: #121212;
+      color: #ffffff;
+      text-align: center;
+      padding-top: 30px;
+      overflow: hidden;
+      position: relative;
+      z-index: 0;
+    }
+
+    /* Fundo giratório estilo globo, maior que a tela para "transbordar" bastante */
+    .fundo-giratorio {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 500vw;      /* transbordando MUITO mais que a viewport */
+      height: 500vh;     /* transbordando MUITO mais que a viewport */
+      transform-origin: center center;
+      background: url('fundo.webp') no-repeat center center;
+      background-size: contain;
+      animation: girarGlobo 40s linear infinite;
+      z-index: -1; /* atrás do conteúdo */
+      pointer-events: none;
+      filter: brightness(0.35);
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    @keyframes girarGlobo {
+      from {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    .imagem-wrapper {
+      height: 200px;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
-      overflow: hidden;
       position: relative;
+      z-index: 2;
     }
 
-    /* Espiral Triconcêntrica em movimento, com a linha transbordando */
-    .spiral {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 3000px; /* Aumenta o tamanho da espiral para que a linha transborde */
-      height: 3000px;
-      margin-top: -1500px; /* Ajusta para que a espiral fique parcialmente fora da tela */
-      margin-left: -1500px; /* Ajusta para que a espiral fique parcialmente fora da tela */
-      border-radius: 50%;
-      background: repeating-conic-gradient(
-        rgba(255, 255, 255, 0.05) 0deg 10deg,
-        rgba(255, 255, 255, 0.1) 10deg 20deg,
-        rgba(255, 255, 255, 0.15) 20deg 30deg
-      );
-      animation: spiral 15s linear infinite;
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    @keyframes spiral {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
+    #imagem {
+      position: relative;
+      width: 150px;
+      transition: none;
+      z-index: 2;
     }
 
     .container {
-      text-align: center;
-      padding: 20px;
+      background-color: #1e1e1e;
+      padding: 30px;
       border-radius: 10px;
-      background-color: transparent;
-      width: 400px;
+      display: inline-block;
+      box-shadow: 0 0 10px #333;
+      margin-top: 30px;
+      z-index: 1;
       position: relative;
     }
 
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 15px 32px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 5px;
-      margin: 10px;
+    h1 {
+      margin-bottom: 20px;
     }
 
-    button:disabled {
-      background-color: #777;
-      cursor: not-allowed;
+    p {
+      font-size: 24px;
+      margin: 10px 0;
     }
 
-    .hidden {
-      display: none;
-    }
-
-    #plane {
-      position: absolute;
-      top: 90px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      transition: transform 0.1s linear;
-    }
-
-    #gameStatus {
-      margin-top: 130px;
-    }
-
-    #progressBar {
-      width: 100%;
-      height: 10px;
-      background-color: #ddd;
-      margin: 20px 0;
-      border-radius: 5px;
-      position: relative;
-    }
-
-    #progress {
-      height: 100%;
-      background-color: #4CAF50;
-      width: 100%;
-      border-radius: 5px;
-      position: absolute;
-      transition: width 1s linear;
-    }
-
-    @keyframes flyOut {
-      0% { transform: translateX(-50%) translateY(0); }
-      100% { transform: translateX(300px) translateY(-400px); }
-    }
-
-    #menuBar {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 18px;
-      color: #fff;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    #menuTitle {
+    .value {
       font-weight: bold;
-      margin-left: 10px;
+      font-size: 32px;
+    }
+
+    /* Barra de contagem regressiva */
+    #barra-contagem {
+      width: 300px;
+      height: 20px;
+      background-color: #333;
+      border-radius: 10px;
+      margin: 20px auto 0;
+      overflow: hidden;
+      display: none; /* só aparece durante estourou */
+      box-shadow: 0 0 5px #00ffea;
+    }
+
+    #barra-preenchimento {
+      height: 100%;
+      background: linear-gradient(90deg, #00ffea, #008080);
+      width: 100%;
+      transition: width 0.1s linear;
     }
   </style>
 </head>
 <body>
 
-  <!-- Espiral de fundo -->
-  <div class="spiral"></div>
+  <!-- Fundo giratório -->
+  <div class="fundo-giratorio"></div>
 
-  <!-- Barra de menu -->
-  <div id="menuBar">
-    <span id="menuTitle">🎮 Aviator mozbet</span>
-    <span id="menuSaldo">Saldo: 1000</span>
+  <div class="imagem-wrapper">
+    <img id="imagem" src="imagem.png" alt="Aviator" />
   </div>
 
   <div class="container">
-    <div id="title" class="hidden">Aviator</div>
-    <img id="plane" src="imagem.png" alt="Avião">
-
-    <div id="gameStatus">
-      <p id="multiplier">0x</p>
-      <p id="ganho">Ganho atual: 0</p>
-    </div>
-
-    <div id="progressBar">
-      <div id="progress"></div>
-    </div>
-
-    <div class="controls">
-      <input type="number" id="betAmount" placeholder="Insira o valor da aposta" value="" disabled>
-      <button id="betBtn" onclick="placeBet()">Apostar</button>
-      <button id="withdrawBtn" onclick="withdraw()" disabled>Retirar</button>
-    </div>
+    <p><span class="value" id="status">Carregando...</span></p>
+    <p><span class="value" id="multiplicador">0.00</span>x</p>
   </div>
 
-  <!-- Sons -->
-  <audio id="backgroundSound" loop>
-    <source src="som-fundo.mp3" type="audio/mp3">
-  </audio>
+  <!-- Barra de contagem regressiva -->
+  <div id="barra-contagem">
+    <div id="barra-preenchimento"></div>
+  </div>
 
-  <audio id="aggressivePlaneSound">
-    <source src="som-voo-agressivo.mp3" type="audio/mp3">
-  </audio>
+  <!-- Áudios -->
+  <audio id="somJogo" src="1.mp3" loop></audio>
+  <audio id="somEstouro" src="2.mp3"></audio>
 
   <script>
-    let multiplier = 1;
-    let saldo = 1000;
-    let aposta = 0;
-    let ganhoAtual = 0;
-    let gameStarted = false;
-    let gameInterval;
-    let gameTimeout;
-    let progressInterval;
-    let soundPlayed = false;
+    const API_URL = "https://mundobet-aviator-backend.onrender.com/status";
+    const statusEl = document.getElementById("status");
+    const multiplicadorEl = document.getElementById("multiplicador");
+    const imagem = document.getElementById("imagem");
 
-    const plane = document.getElementById("plane");
-    const multiplierDisplay = document.getElementById("multiplier");
-    const saldoDisplay = document.getElementById("menuSaldo");
-    const ganhoDisplay = document.getElementById("ganho");
-    const withdrawBtn = document.getElementById("withdrawBtn");
-    const betBtn = document.getElementById("betBtn");
-    const betAmountInput = document.getElementById("betAmount");
-    const progress = document.getElementById("progress");
+    const barraContagem = document.getElementById("barra-contagem");
+    const barraPreenchimento = document.getElementById("barra-preenchimento");
 
-    const backgroundSound = document.getElementById("backgroundSound");
-    const aggressivePlaneSound = document.getElementById("aggressivePlaneSound");
+    const somJogo = document.getElementById("somJogo");
+    const somEstouro = document.getElementById("somEstouro");
 
-    window.onload = () => {
-      backgroundSound.play().catch(() => {
-        document.addEventListener('click', () => {
-          backgroundSound.play();
-        });
-      });
-      startGame();
-    };
+    let animFrame;
+    let posY = 0;
+    let posX = 0;
+    let estourouAnterior = false;
+    let vooCompleto = false;
+    let oscilando = false;
+    let limiteY = -80;
+    let oscilarDirecao = 1;
 
-    function startGame() {
-      if (gameStarted) return;
-      gameStarted = true;
+    let contagemInterval = null;
+    let tempoTotal = 10 * 1000; // 10 segundos em ms
+    let tempoInicio = 0;
 
-      aposta = 0;
-      ganhoAtual = 0;
-      multiplier = 1;
-      updateDisplays();
+    function tocarSomJogo() {
+      if (somJogo.paused) {
+        somJogo.currentTime = 0;
+        somJogo.play().catch(() => {});
+      }
+    }
 
-      betAmountInput.disabled = false;
-      betBtn.disabled = false;
-      withdrawBtn.disabled = true;
+    function pararSomJogo() {
+      somJogo.pause();
+    }
 
-      progress.style.transition = 'none';
-      progress.style.width = "100%";
-      setTimeout(() => {
-        progress.style.transition = 'width 1s linear';
-        let currentProgress = 100;
-        progressInterval = setInterval(() => {
-          currentProgress -= 10;
-          progress.style.width = `${currentProgress}%`;
-          if (currentProgress <= 0) {
-            clearInterval(progressInterval);
-            beginRound();
-          }
-        }, 1000);
+    function tocarSomEstouro() {
+      somEstouro.currentTime = 0;
+      somEstouro.play().catch(() => {});
+    }
+
+    function animarMovimentoLento() {
+      oscilando = false;
+      function subir() {
+        if (posY > limiteY) {
+          posY -= 0.2;
+        } else {
+          // Chegou no limite, entra em oscilação leve
+          oscilando = true;
+          animarOscilacao();
+          return;
+        }
+        imagem.style.transform = `translate(${posX}px, ${posY}px)`;
+        animFrame = requestAnimationFrame(subir);
+      }
+      subir();
+    }
+
+    function animarOscilacao() {
+      function oscilar() {
+        if (!oscilando) return;
+        posY += 0.1 * oscilarDirecao;
+        if (posY > limiteY + 2) oscilarDirecao = -1;
+        if (posY < limiteY - 2) oscilarDirecao = 1;
+        imagem.style.transform = `translate(${posX}px, ${posY}px)`;
+        animFrame = requestAnimationFrame(oscilar);
+      }
+      oscilar();
+    }
+
+    function animarVooRapido() {
+      cancelAnimationFrame(animFrame);
+      oscilando = false;
+      let passos = 30;
+      let passoAtual = 0;
+
+      function voo() {
+        if (passoAtual < passos) {
+          posX += 15;
+          posY -= 10;
+          imagem.style.transform = `translate(${posX}px, ${posY}px)`;
+          passoAtual++;
+          requestAnimationFrame(voo);
+        } else {
+          vooCompleto = true;
+          tocarSomJogo(); // retoma som do jogo mesmo esperando
+        }
+      }
+
+      voo();
+    }
+
+    function iniciarContagemRegressiva() {
+      barraContagem.style.display = 'block';
+      barraPreenchimento.style.width = '100%';
+      tempoInicio = Date.now();
+
+      if (contagemInterval) clearInterval(contagemInterval);
+
+      contagemInterval = setInterval(() => {
+        const tempoPassado = Date.now() - tempoInicio;
+        let largura = Math.max(0, 100 - (tempoPassado / tempoTotal) * 100);
+        barraPreenchimento.style.width = largura + '%';
+
+        if (largura <= 0) {
+          barraContagem.style.display = 'none';
+          clearInterval(contagemInterval);
+        }
       }, 50);
     }
 
-    function beginRound() {
-      betBtn.disabled = true;
-      betAmountInput.disabled = true;
+    async function atualizarStatus() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
 
-      if (aposta > 0) {
-        withdrawBtn.disabled = false;
-      }
+        multiplicadorEl.textContent = data.multiplicador.toFixed(2);
 
-      soundPlayed = false;
-
-      gameInterval = setInterval(() => {
-        multiplier += Math.random() * 0.1;
-        multiplierDisplay.textContent = `${multiplier.toFixed(2)}x`;
-
-        if (aposta > 0) {
-          ganhoAtual = aposta * multiplier;
-          ganhoDisplay.textContent = `${ganhoAtual.toFixed(2)}`;
+        if (data.status === "Jogando") {
+          statusEl.textContent = data.status;
+          barraContagem.style.display = 'none'; // esconde barra se estava visível
+          if (vooCompleto || estourouAnterior) {
+            posX = 0;
+            posY = 0;
+            imagem.style.transform = `translate(0, 0)`;
+            vooCompleto = false;
+            estourouAnterior = false;
+            animarMovimentoLento();
+          }
+          tocarSomJogo();
+        } else if (data.status === "Estourou") {
+          if (!estourouAnterior) {
+            estourouAnterior = true;
+            pararSomJogo();
+            tocarSomEstouro();
+            animarVooRapido();
+            statusEl.textContent = "voou para longe";
+            iniciarContagemRegressiva();
+          }
         }
-
-        plane.style.transform = `translateX(-50%) translateY(-${multiplier * 4}px)`;
-
-        if (multiplier > 10 && !soundPlayed && plane.style.transform === "translateX(-50%) translateY(0px)") {
-          backgroundSound.pause();
-          aggressivePlaneSound.play();
-          soundPlayed = true;
-        }
-
-      }, 100);
-
-      gameTimeout = setTimeout(() => {
-        clearInterval(gameInterval);
-        endGame(false);
-      }, 15000);
-    }
-
-    function placeBet() {
-      const valor = parseFloat(betAmountInput.value);
-      if (isNaN(valor) || valor <= 0) {
-        alert("Insira um valor válido para aposta.");
-        return;
-      }
-      if (saldo < valor) {
-        alert("Saldo insuficiente.");
-        return;
-      }
-
-      aposta = valor;
-      saldo -= aposta;
-      saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-      betBtn.disabled = true;
-    }
-
-    function withdraw() {
-      if (aposta > 0 && ganhoAtual > 0) {
-        saldo += ganhoAtual;
-        saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-        ganhoAtual = 0;
-        ganhoDisplay.textContent = "0";
-        aposta = 0;
-        withdrawBtn.disabled = true;
+      } catch (err) {
+        console.error("Erro ao buscar dados:", err);
+        statusEl.textContent = "Erro";
+        multiplicadorEl.textContent = "--";
+        barraContagem.style.display = 'none';
       }
     }
 
-    function endGame(success) {
-      if (!success) {
-        backgroundSound.pause();
-        aggressivePlaneSound.play();
-
-        plane.style.animation = "flyOut 1s forwards";
-        setTimeout(() => {
-          plane.style.animation = "none";
-          plane.style.transform = "translateX(-50%) translateY(0)";
-          resetGame();
-        }, 3000);
-      } else {
-        resetGame();
-      }
-    }
-
-    function resetGame() {
-      clearInterval(gameInterval);
-      clearTimeout(gameTimeout);
-      gameStarted = false;
-      ganhoAtual = 0;
-      aposta = 0;
-      multiplier = 1;
-      updateDisplays();
-
-      backgroundSound.pause();
-      backgroundSound.currentTime = 0;
-      setTimeout(() => {
-        backgroundSound.play();
-      }, 100);
-
-      setTimeout(startGame, 100);
-    }
-
-    function updateDisplays() {
-      multiplierDisplay.textContent = "0x";
-      saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-      ganhoDisplay.textContent = "0";
-    }
+    setInterval(atualizarStatus, 100);
+    atualizarStatus();
   </script>
-
 </body>
 </html>
