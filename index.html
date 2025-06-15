@@ -1,338 +1,229 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jogo Aviator - Simulação</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>worldbet</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #000; /* Fundo escuro para destacar a espiral */
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      overflow: hidden;
-      position: relative;
+      padding-top: 60px;
+      background-image: linear-gradient(to right, #4facfe, #00f2fe);
     }
 
-    /* Espiral Triconcêntrica em movimento, com a linha transbordando */
-    .spiral {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 3100px; /* Aumenta o tamanho da espiral para que a linha transborde */
-      height: 3000px;
-      margin-top: -1500px; /* Ajusta para que a espiral fique parcialmente fora da tela */
-      margin-left: -2200px; /* Ajusta para que a espiral fique parcialmente fora da tela */
-      border-radius: 50%;
-      background: repeating-conic-gradient(
-        rgba(255, 255, 255, 0.05) 0deg 10deg,
-        rgba(255, 255, 255, 0.1) 10deg 20deg,
-        rgba(255, 255, 255, 0.15) 20deg 30deg
-      );
-      animation: spiral 15s linear infinite;
-      pointer-events: none;
-      z-index: -1;
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #333;
+      color: white;
+      display: flex;
+      justify-content: flex-end;
+      padding: 15px 20px;
+      z-index: 999;
     }
 
-    @keyframes spiral {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
+    .navbar button {
+      background-color: #555;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      margin-left: 10px;
+      cursor: pointer;
+      border-radius: 4px;
     }
 
-    .container {
+    .header-title {
       text-align: center;
-      padding: 20px;
-      border-radius: 10px;
-      background-color: transparent;
-      width: 400px;
-      position: relative;
+      color: white;
+      margin-top: 30px;
+      font-size: 28px;
+      font-weight: bold;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
     }
 
-    button {
-      background-color: #4CAF50;
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 996;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 5px;
+      width: 90%;
+      max-width: 400px;
+      box-sizing: border-box;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .modal button {
+      width: 100%;
+      padding: 10px;
+      background: #333;
       color: white;
       border: none;
-      padding: 15px 32px;
-      font-size: 16px;
       cursor: pointer;
-      border-radius: 5px;
-      margin: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
     }
 
-    button:disabled {
-      background-color: #777;
-      cursor: not-allowed;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    #plane {
-      position: absolute;
-      top: 90px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      transition: transform 0.1s linear;
-    }
-
-    #gameStatus {
-      margin-top: 130px;
-    }
-
-    #progressBar {
-      width: 100%;
-      height: 10px;
-      background-color: #ddd;
-      margin: 20px 0;
-      border-radius: 5px;
-      position: relative;
-    }
-
-    #progress {
-      height: 100%;
-      background-color: #4CAF50;
-      width: 100%;
-      border-radius: 5px;
-      position: absolute;
-      transition: width 1s linear;
-    }
-
-    @keyframes flyOut {
-      0% { transform: translateX(-50%) translateY(0); }
-      100% { transform: translateX(300px) translateY(-400px); }
-    }
-
-    #menuBar {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 18px;
-      color: #fff;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    #menuTitle {
+    #message {
+      text-align: center;
+      margin-top: 20px;
       font-weight: bold;
-      margin-left: 10px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Espiral de fundo -->
-  <div class="spiral"></div>
-
   <!-- Barra de menu -->
-  <div id="menuBar">
-    <span id="menuTitle">🎮 Aviator mozbet</span>
-    <span id="menuSaldo">Saldo: 1000</span>
-  </div>
-
-  <div class="container">
-    <div id="title" class="hidden">Aviator</div>
-    <img id="plane" src="imagem.png" alt="Avião">
-
-    <div id="gameStatus">
-      <p id="multiplier">0x</p>
-      <p id="ganho">Ganho atual: 0</p>
-    </div>
-
-    <div id="progressBar">
-      <div id="progress"></div>
-    </div>
-
-    <div class="controls">
-      <input type="number" id="betAmount" placeholder="Insira o valor da aposta" value="" disabled>
-      <button id="betBtn" onclick="placeBet()">Apostar</button>
-      <button id="withdrawBtn" onclick="withdraw()" disabled>Retirar</button>
+  <div class="navbar">
+    <div>
+      <button onclick="openModal('signup-modal')">Cadastrar</button>
+      <button onclick="openModal('login-modal')">Entrar</button>
     </div>
   </div>
 
-  <!-- Sons -->
-  <audio id="backgroundSound" loop>
-    <source src="som-fundo.mp3" type="audio/mp3">
-  </audio>
+  <!-- Novo título fora da navbar -->
+  <div class="header-title">
+    <h1>Bem vindo a worldbet</h1>
+  </div>
 
-  <audio id="aggressivePlaneSound">
-    <source src="som-voo-agressivo.mp3" type="audio/mp3">
-  </audio>
+  <!-- Modal de Cadastro -->
+  <div id="signup-modal" class="modal">
+    <div class="modal-content">
+      <h2>Cadastro</h2>
+      <form id="signup-form">
+        <input type="email" id="signup-email" placeholder="Email" required>
+        <input type="password" id="signup-password" placeholder="Senha (minimo 6 caracteres)" required>
+        <button type="submit">Cadastrar</button>
+      </form>
+    </div>
+  </div>
 
-  <script>
-    let multiplier = 1;
-    let saldo = 1000;
-    let aposta = 0;
-    let ganhoAtual = 0;
-    let gameStarted = false;
-    let gameInterval;
-    let gameTimeout;
-    let progressInterval;
-    let soundPlayed = false;
+  <!-- Modal de Login -->
+  <div id="login-modal" class="modal">
+    <div class="modal-content">
+      <h2>Login</h2>
+      <form id="login-form">
+        <input type="email" id="login-email" placeholder="Email" required>
+        <input type="password" id="login-password" placeholder="Senha (minimo 6 caracteres)" required>
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
 
-    const plane = document.getElementById("plane");
-    const multiplierDisplay = document.getElementById("multiplier");
-    const saldoDisplay = document.getElementById("menuSaldo");
-    const ganhoDisplay = document.getElementById("ganho");
-    const withdrawBtn = document.getElementById("withdrawBtn");
-    const betBtn = document.getElementById("betBtn");
-    const betAmountInput = document.getElementById("betAmount");
-    const progress = document.getElementById("progress");
+  <p id="message"></p>
 
-    const backgroundSound = document.getElementById("backgroundSound");
-    const aggressivePlaneSound = document.getElementById("aggressivePlaneSound");
+  <!-- Firebase + Script principal -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-    window.onload = () => {
-      backgroundSound.play().catch(() => {
-        document.addEventListener('click', () => {
-          backgroundSound.play();
-        });
-      });
-      startGame();
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyuuyEQ7ZCQ0wv9tsnQ6wf_jve18VHOPE",
+      authDomain: "aviat-897a2.firebaseapp.com",
+      projectId: "aviat-897a2",
+      storageBucket: "aviat-897a2.appspot.com",
+      messagingSenderId: "222649377449",
+      appId: "1:222649377449:web:8d19cee19dc4f768087fb8",
+      measurementId: "G-K81LWNL5ES"
     };
 
-    function startGame() {
-      if (gameStarted) return;
-      gameStarted = true;
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
 
-      aposta = 0;
-      ganhoAtual = 0;
-      multiplier = 1;
-      updateDisplays();
-
-      betAmountInput.disabled = false;
-      betBtn.disabled = false;
-      withdrawBtn.disabled = true;
-
-      progress.style.transition = 'none';
-      progress.style.width = "100%";
-      setTimeout(() => {
-        progress.style.transition = 'width 1s linear';
-        let currentProgress = 100;
-        progressInterval = setInterval(() => {
-          currentProgress -= 10;
-          progress.style.width = `${currentProgress}%`;
-          if (currentProgress <= 0) {
-            clearInterval(progressInterval);
-            beginRound();
+    // Redirecionar se usuário logado recentemente
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const lastLoginStr = localStorage.getItem('lastLogin');
+        if (lastLoginStr) {
+          const lastLogin = new Date(lastLoginStr);
+          const now = new Date();
+          const diffInMs = now - lastLogin;
+          const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+          if (diffInDays < 7) {
+            window.location.href = "dasboard.html";
           }
-        }, 1000);
-      }, 50);
-    }
-
-    function beginRound() {
-      betBtn.disabled = true;
-      betAmountInput.disabled = true;
-
-      if (aposta > 0) {
-        withdrawBtn.disabled = false;
-      }
-
-      soundPlayed = false;
-
-      gameInterval = setInterval(() => {
-        multiplier += Math.random() * 0.1;
-        multiplierDisplay.textContent = `${multiplier.toFixed(2)}x`;
-
-        if (aposta > 0) {
-          ganhoAtual = aposta * multiplier;
-          ganhoDisplay.textContent = `${ganhoAtual.toFixed(2)}`;
         }
-
-        plane.style.transform = `translateX(-50%) translateY(-${multiplier * 4}px)`;
-
-        if (multiplier > 10 && !soundPlayed && plane.style.transform === "translateX(-50%) translateY(0px)") {
-          backgroundSound.pause();
-          aggressivePlaneSound.play();
-          soundPlayed = true;
-        }
-
-      }, 100);
-
-      gameTimeout = setTimeout(() => {
-        clearInterval(gameInterval);
-        endGame(false);
-      }, 15000);
-    }
-
-    function placeBet() {
-      const valor = parseFloat(betAmountInput.value);
-      if (isNaN(valor) || valor <= 0) {
-        alert("Insira um valor válido para aposta.");
-        return;
       }
-      if (saldo < valor) {
-        alert("Saldo insuficiente.");
-        return;
+    });
+
+    // Cadastro
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          document.getElementById('message').innerText = "Cadastro realizado com sucesso!";
+          closeModals();
+        })
+        .catch((error) => {
+          document.getElementById('message').innerText = "Erro no cadastro: A senha deve ter no minimo 6 caracteres";
+        });
+    });
+
+    // Login
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          localStorage.setItem('lastLogin', new Date().toISOString());
+          document.getElementById('message').innerText = "Login realizado com sucesso!";
+          closeModals();
+          window.location.href = "dasboard.html";
+        })
+        .catch(() => {
+          document.getElementById('message').innerText = "Erro no login, verifique os seus dados de acesso.";
+        });
+    });
+
+    // Funções para modais
+    window.openModal = function (id) {
+      document.getElementById(id).style.display = 'block';
+    };
+
+    window.closeModals = function () {
+      document.getElementById('signup-modal').style.display = 'none';
+      document.getElementById('login-modal').style.display = 'none';
+    };
+
+    window.onclick = function (event) {
+      if (event.target.classList.contains('modal')) {
+        closeModals();
       }
-
-      aposta = valor;
-      saldo -= aposta;
-      saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-      betBtn.disabled = true;
-    }
-
-    function withdraw() {
-      if (aposta > 0 && ganhoAtual > 0) {
-        saldo += ganhoAtual;
-        saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-        ganhoAtual = 0;
-        ganhoDisplay.textContent = "0";
-        aposta = 0;
-        withdrawBtn.disabled = true;
-      }
-    }
-
-    function endGame(success) {
-      if (!success) {
-        backgroundSound.pause();
-        aggressivePlaneSound.play();
-
-        plane.style.animation = "flyOut 1s forwards";
-        setTimeout(() => {
-          plane.style.animation = "none";
-          plane.style.transform = "translateX(-50%) translateY(0)";
-          resetGame();
-        }, 3000);
-      } else {
-        resetGame();
-      }
-    }
-
-    function resetGame() {
-      clearInterval(gameInterval);
-      clearTimeout(gameTimeout);
-      gameStarted = false;
-      ganhoAtual = 0;
-      aposta = 0;
-      multiplier = 1;
-      updateDisplays();
-
-      backgroundSound.pause();
-      backgroundSound.currentTime = 0;
-      setTimeout(() => {
-        backgroundSound.play();
-      }, 100);
-
-      setTimeout(startGame, 100);
-    }
-
-    function updateDisplays() {
-      multiplierDisplay.textContent = "0x";
-      saldoDisplay.textContent = `Saldo: ${saldo.toFixed(2)}`;
-      ganhoDisplay.textContent = "0";
-    }
+    };
   </script>
-
 </body>
 </html>
