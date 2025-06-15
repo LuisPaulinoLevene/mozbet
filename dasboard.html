@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Aviator - Aposta</title>
+  <title>Aviator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -47,7 +47,6 @@
       align-items: center;
       position: relative;
       z-index: 2;
-      margin-bottom: 20px;
     }
 
     #imagem {
@@ -58,16 +57,15 @@
     }
 
     .container {
-      background-color: #1e1e1e;
-      padding: 30px 20px 40px 20px;
+      background-color: transparent;
+      padding: 30px;
       border-radius: 10px;
       display: inline-block;
-      box-shadow: 0 0 10px #333;
-      margin-top: 0;
-      max-width: 350px;
+      margin-top: 30px;
       z-index: 1;
       position: relative;
-      user-select: none;
+      box-shadow: none;
+      border: none;
     }
 
     h1 {
@@ -85,14 +83,14 @@
     }
 
     #barra-contagem {
-      width: 100%;
+      width: 300px;
       height: 20px;
       background-color: #333;
       border-radius: 10px;
       margin: 20px auto 0;
       overflow: hidden;
+      display: none;
       box-shadow: 0 0 5px #00ffea;
-      display: block;
     }
 
     #barra-preenchimento {
@@ -102,77 +100,34 @@
       transition: width 0.1s linear;
     }
 
-    #saldo-usuario {
-      position: fixed;
+    #saldo {
+      position: absolute;
       top: 10px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 8px 15px;
+      right: 20px;
+      font-size: 18px;
+      background-color: #222;
+      padding: 8px 16px;
       border-radius: 8px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #00ffea;
-      z-index: 1000;
-      user-select: none;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 0 8px #00ffea;
-      min-width: 120px;
-      text-align: left;
-    }
-
-    input#valorAposta {
-      padding: 10px;
-      font-size: 18px;
-      width: calc(100% - 24px);
-      border-radius: 6px;
-      border: none;
-      outline: none;
-      margin-top: 15px;
-      box-sizing: border-box;
-      background: #222;
-      color: #eee;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 18px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      background-color: #00ffea;
-      color: #121212;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
-      margin-top: 15px;
-      margin-right: 10px;
-    }
-
-    button:disabled {
-      background-color: #555;
-      cursor: not-allowed;
-    }
-
-    button:hover:not(:disabled) {
-      background-color: #008080;
-      color: white;
-    }
-
-    #statusAposta {
-      margin-top: 20px;
-      font-size: 24px;
-      color: #00ffea;
-      min-height: 32px;
-      word-wrap: break-word;
-      font-weight: bold;
-      font-family: monospace;
+      box-shadow: 0 0 5px #444;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
-
-  <div id="saldo-usuario">Saldo: --</div>
-
   <div class="fundo-giratorio"></div>
+
+  <div style="position: absolute; top: 10px; left: 20px; z-index: 10; display: flex; align-items: center; gap: 10px;">
+      <button onclick="location.href='deposito.html'" style="padding: 8px 12px; border-radius: 6px; background-color: #008CBA; color: white; border: none; cursor: pointer;">
+        Depósito
+      </button>
+      <button onclick="location.href='levantamento.html'" style="padding: 8px 12px; border-radius: 6px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">
+        Levantamento
+      </button>
+  </div>
+
+  <div id="saldo" style="position: absolute; top: 10px; right: 20px; font-size: 18px; background-color: #222; padding: 8px 16px; border-radius: 8px; box-shadow: 0 0 5px #444; z-index: 10;">
+  Saldo: 0.00 MZN
+  </div>
 
   <div class="imagem-wrapper">
     <img id="imagem" src="imagem.png" alt="Aviator" />
@@ -181,54 +136,86 @@
   <div class="container">
     <p><span class="value" id="status">Carregando...</span></p>
     <p><span class="value" id="multiplicador">0.00</span>x</p>
-
-    <input type="number" id="valorAposta" placeholder="Valor da aposta" min="1" step="0.01" />
-    <br />
-
-    <button id="botaoApostar" disabled>Apostar</button>
-    <button id="botaoRetirar" disabled>Retirar</button>
-
-    <div id="barra-contagem">
-      <div id="barra-preenchimento"></div>
-    </div>
-
-    <p id="statusAposta">Nenhuma aposta ativa</p>
   </div>
+
+  <div id="barra-contagem">
+    <div id="barra-preenchimento"></div>
+  </div>
+
+  <div id="aposta-container" style="margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+      <input type="number" id="valorAposta" placeholder="Valor da aposta" min="1" step="0.01" style="padding: 10px; border-radius: 5px; width: 80%; max-width: 279px;">
+
+      <button id="btnApostar" style="padding: 10px 20px; width: 90%; max-width: 300px;">Apostar</button>
+      <button id="btnRetirar" style="padding: 10px 20px; width: 90%; max-width: 300px;" disabled>Retirar</button>
+      <button id="btnAutoAposta" style="padding: 10px 20px; width: 90%; max-width: 300px;">Auto Aposta</button>
+  </div>
+
 
   <audio id="somJogo" src="1.mp3" loop></audio>
   <audio id="somEstouro" src="2.mp3"></audio>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAyuuyEQ7ZCQ0wv9tsnQ6wf_jve18VHOPE",
-      authDomain: "aviat-897a2.firebaseapp.com",
-      projectId: "aviat-897a2",
-      storageBucket: "aviat-897a2.appspot.com",
-      messagingSenderId: "222649377449",
-      appId: "1:222649377449:web:8d19cee19dc4f768087fb8",
-      measurementId: "G-K81LWNL5ES"
-    };
+  <script>
+    // Configuração do Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyAyuuyEQ7ZCQ0wv9tsnQ6wf_jve18VHOPE",
+        authDomain: "aviat-897a2.firebaseapp.com",
+        databaseURL: "https://aviat-897a2-default-rtdb.firebaseio.com",
+        projectId: "aviat-897a2",
+        storageBucket: "aviat-897a2.appspot.com",
+        messagingSenderId: "222649377449",
+        appId: "1:222649377449:web:8d19cee19dc4f768087fb8",
+        measurementId: "G-K81LWNL5ES"
+      };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+      const saldoEl = document.getElementById("saldo");
 
-    const saldoEl = document.getElementById("saldo-usuario");
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          const userRef = db.collection("users").doc(user.uid);
+
+          userRef.get().then(doc => {
+            if (!doc.exists || doc.data().saldo === undefined) {
+              userRef.set({ saldo: 0.0 }, { merge: true });
+              saldoEl.textContent = "Saldo:0.00 MZN";
+            } else {
+              saldoEl.textContent = "Saldo: " + doc.data().saldo.toFixed(2) + " MZN";
+            }
+            if (jogoEmAndamento) {
+                btnApostar.disabled = true;
+                inputAposta.disabled = true;
+                btnRetirar.disabled = true;
+              }
+          });
+
+          // Atualiza saldo em tempo real
+          userRef.onSnapshot(doc => {
+            const data = doc.data();
+            if (data && data.saldo !== undefined) {
+              saldoEl.textContent = "Saldo: " + data.saldo.toFixed(2) + " MZN";
+            }
+          });
+        } else {
+          console.warn("Usuário não está logado.");
+          saldoEl.textContent = "Saldo: --";
+        }
+      });
+
+    // =============== RESTANTE DO CÓDIGO DO AVIATOR (inalterado) =================
+    const API_URL = "https://mundobet-aviator-backend.onrender.com/status";
     const statusEl = document.getElementById("status");
     const multiplicadorEl = document.getElementById("multiplicador");
     const imagem = document.getElementById("imagem");
 
     const barraContagem = document.getElementById("barra-contagem");
     const barraPreenchimento = document.getElementById("barra-preenchimento");
-
-    const valorApostaInput = document.getElementById("valorAposta");
-    const botaoApostar = document.getElementById("botaoApostar");
-    const botaoRetirar = document.getElementById("botaoRetirar");
-    const statusApostaEl = document.getElementById("statusAposta");
 
     const somJogo = document.getElementById("somJogo");
     const somEstouro = document.getElementById("somEstouro");
@@ -243,49 +230,10 @@
     let oscilarDirecao = 1;
 
     let contagemInterval = null;
-    let tempoTotal = 10000; // 10 segundos
+    let tempoTotal = 10 * 1000;
     let tempoInicio = 0;
-
-    // Variáveis de aposta
-    let apostaAtiva = false;
-    let valorApostado = 0;
-    let multiplicadorAtual = 1.00;
-    let retiradaFeita = false;
-
-    let userId = null;
-    let unsubscribeSaldo = null;
-
-    // Atualiza saldo do usuário em tempo real via Firebase
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        userId = user.uid;
-        const userRef = doc(db, "users", userId);
-
-        // Inicializa saldo caso não exista
-        const docSnap = await getDoc(userRef);
-        if (!docSnap.exists()) {
-          await setDoc(userRef, { saldo: 0 });
-          saldoEl.textContent = "Saldo: 0";
-        } else {
-          saldoEl.textContent = "Saldo: " + (docSnap.data().saldo ?? 0);
-        }
-
-        if (unsubscribeSaldo) unsubscribeSaldo();
-
-        unsubscribeSaldo = onSnapshot(userRef, (doc) => {
-          if (doc.exists()) {
-            saldoEl.textContent = "Saldo: " + (doc.data().saldo ?? 0);
-          }
-        });
-      } else {
-        userId = null;
-        saldoEl.textContent = "Saldo: --";
-        if (unsubscribeSaldo) {
-          unsubscribeSaldo();
-          unsubscribeSaldo = null;
-        }
-      }
-    });
+    let jogoEmAndamento = false;
+    let autoApostaAtiva = false;
 
     function tocarSomJogo() {
       if (somJogo.paused) {
@@ -294,16 +242,11 @@
       }
     }
 
-    function pararSomJogo() {
-      somJogo.pause();
-    }
-
     function tocarSomEstouro() {
       somEstouro.currentTime = 0;
       somEstouro.play().catch(() => {});
     }
 
-    // Animação da imagem: movimento lento subindo + oscilação
     function animarMovimentoLento() {
       oscilando = false;
       function subir() {
@@ -332,7 +275,6 @@
       oscilar();
     }
 
-    // Animação voo rápido após estouro
     function animarVooRapido() {
       cancelAnimationFrame(animFrame);
       oscilando = false;
@@ -355,11 +297,10 @@
       voo();
     }
 
-    // Controla a contagem regressiva da barra em Estourou
-    function iniciarContagemEstourou() {
+    function iniciarContagemRegressiva() {
       barraContagem.style.display = 'block';
+      barraPreenchimento.style.width = '100%';
       tempoInicio = Date.now();
-      barraPreenchimento.style.width = '100%';  // Já está aqui para começar cheia
 
       if (contagemInterval) clearInterval(contagemInterval);
 
@@ -369,174 +310,165 @@
         barraPreenchimento.style.width = largura + '%';
 
         if (largura <= 0) {
+          barraContagem.style.display = 'none';
           clearInterval(contagemInterval);
-          contagemInterval = null;
-          barraPreenchimento.style.width = '100%';  // reset para cheio (pra próximo ciclo)
         }
       }, 50);
     }
 
     async function atualizarStatus() {
       try {
-        const response = await fetch("https://mundobet-aviator-backend.onrender.com/status");
+        const response = await fetch(API_URL);
         const data = await response.json();
 
-        multiplicadorAtual = data.multiplicador;
-        const statusJogo = data.status;
+        multiplicadorEl.textContent = data.multiplicador.toFixed(2);
 
-        multiplicadorEl.textContent = multiplicadorAtual.toFixed(2);
-        statusEl.textContent = statusJogo;
+        if (data.status === "Jogando") {
+          jogoEmAndamento = true;
+          statusEl.textContent = ""; // ← você queria vazio
 
-        if (statusJogo === "Aguardando") {
-          // Limpa qualquer intervalo de contagem e garante barra cheia uma única vez
-          if (contagemInterval) {
-            clearInterval(contagemInterval);
-            contagemInterval = null;
+          barraContagem.style.display = 'none';
+
+          if (!emAposta) {
+            if (autoApostaAtiva) {
+              btnApostar.click(); // dispara a aposta automaticamente
+            } else {
+              btnApostar.disabled = true;
+              inputAposta.disabled = true;
+              btnRetirar.disabled = true;
+            }
           }
 
-          // Se a barra ainda não está cheia, deixa ela cheia 100%
-          if (barraPreenchimento.style.width !== '100%') {
-            barraPreenchimento.style.width = '100%';
+          if (vooCompleto || estourouAnterior) {
+            posX = 0;
+            posY = 0;
+            imagem.style.transform = `translate(0, 0)`;
+            vooCompleto = false;
+            estourouAnterior = false;
+            animarMovimentoLento();
           }
-          barraContagem.style.display = 'block';
-
-          botaoApostar.disabled = apostaAtiva;
-          valorApostaInput.disabled = apostaAtiva;
-
-          botaoRetirar.disabled = true;
-          statusApostaEl.textContent = "Nenhuma aposta ativa";
-          estourouAnterior = false;
-          vooCompleto = false;
-          posX = 0;
-          posY = 0;
-          imagem.style.transform = `translate(${posX}px, ${posY}px)`;
-          animarMovimentoLento();
-
-        } else if (statusJogo === "Jogando") {
-          // Barra vazia
-          if (contagemInterval) {
-            clearInterval(contagemInterval);
-            contagemInterval = null;
-          }
-          barraPreenchimento.style.width = '0%';
-          barraContagem.style.display = 'block';
-
-          botaoApostar.disabled = true;
-          valorApostaInput.disabled = true;
-
-          if (apostaAtiva && !retiradaFeita) {
-            botaoRetirar.disabled = false;
-            statusApostaEl.textContent = (valorApostado * multiplicadorAtual).toFixed(2);
-          } else {
-            botaoRetirar.disabled = true;
-          }
-
-        } else if (statusJogo === "Estourou") {
-          botaoRetirar.disabled = true;
-          botaoApostar.disabled = false;
-          valorApostaInput.disabled = false;
-
-          if (apostaAtiva && !retiradaFeita) {
-            statusApostaEl.textContent = (valorApostado * multiplicadorAtual).toFixed(2);
-          } else {
-            statusApostaEl.textContent = "Nenhuma aposta ativa";
-          }
-
+          tocarSomJogo();
+        } else if (data.status === "Estourou") {
           if (!estourouAnterior) {
             estourouAnterior = true;
-
-            // Barra enche e esvazia em 10s
-            iniciarContagemEstourou();
-
-            animarVooRapido();
-
             tocarSomEstouro();
-
-            // Reseta estado após voo
-            setTimeout(() => {
-              posX = 0;
-              posY = 0;
-              imagem.style.transform = `translate(${posX}px, ${posY}px)`;
-              animarMovimentoLento();
-              vooCompleto = false;
-              estourouAnterior = false;
-              barraPreenchimento.style.width = '100%'; // deixa cheia para aguardando
-            }, tempoTotal);
+            animarVooRapido();
+            statusEl.textContent = "voou para longe";
+            iniciarContagemRegressiva();
+            resetarAposta();
+            jogoEmAndamento = false;
           }
         }
       } catch (err) {
-        console.error("Erro ao obter status:", err);
+        console.error("Erro ao buscar dados:", err);
+        statusEl.textContent = "Erro";
+        multiplicadorEl.textContent = "--";
+        barraContagem.style.display = 'none';
       }
     }
 
-    // Configura os botões
-    botaoApostar.addEventListener("click", async () => {
-      if (!userId) {
-        alert("Você precisa estar logado para apostar.");
-        return;
-      }
+    let emAposta = false;
+    let valorApostado = 0;
+    let intervaloContagem = null;
 
-      const valor = parseFloat(valorApostaInput.value);
+    const inputAposta = document.getElementById("valorAposta");
+    const btnApostar = document.getElementById("btnApostar");
+    const btnRetirar = document.getElementById("btnRetirar");
+
+    btnApostar.addEventListener("click", () => {
+      const valor = parseFloat(inputAposta.value);
       if (isNaN(valor) || valor <= 0) {
-        alert("Insira um valor de aposta válido.");
+        alert("Digite um valor válido para apostar.");
         return;
       }
 
-      // Verificar saldo do usuário
-      const userRef = doc(db, "users", userId);
-      const userDoc = await getDoc(userRef);
-      const saldoAtual = userDoc.data()?.saldo ?? 0;
+      if (!auth.currentUser) return;
 
-      if (valor > saldoAtual) {
-        alert("Saldo insuficiente.");
-        return;
-      }
+      const uid = auth.currentUser.uid;
+      const userRef = db.collection("users").doc(uid);
 
-      // Atualiza saldo no Firestore
-      await updateDoc(userRef, {
-        saldo: saldoAtual - valor
+      userRef.get().then(doc => {
+        const saldoAtual = doc.data().saldo || 0;
+
+        if (saldoAtual < valor) {
+          alert("Saldo insuficiente.");
+          return;
+        }
+
+        // Descontar valor da aposta
+        userRef.update({ saldo: saldoAtual - valor });
+        valorApostado = valor;
+        emAposta = true;
+
+        btnApostar.disabled = true;
+        inputAposta.disabled = true;
+        btnRetirar.disabled = false;
+
+        iniciarContagem(valor);
       });
-
-      apostaAtiva = true;
-      valorApostado = valor;
-      retiradaFeita = false;
-
-      botaoApostar.disabled = true;
-      valorApostaInput.disabled = true;
-      botaoRetirar.disabled = false;
-      statusApostaEl.textContent = (valor * multiplicadorAtual).toFixed(2);
     });
 
-    botaoRetirar.addEventListener("click", async () => {
-      if (!apostaAtiva || retiradaFeita) return;
-      if (!userId) return;
+    btnRetirar.addEventListener("click", () => {
+      if (!emAposta || !auth.currentUser) return;
 
-      const premio = valorApostado * multiplicadorAtual;
+      emAposta = false;
+      clearInterval(intervaloContagem);
+      btnApostar.textContent = "Apostar";
+      btnApostar.style.backgroundColor = ""; // limpa estilo
+      btnApostar.style.color = "";
+      // NÃO reativa btnApostar aqui!
+      inputAposta.disabled = true;
+      btnApostar.disabled = true;
+      btnRetirar.disabled = true;
 
-      // Atualiza saldo no Firestore
-      const userRef = doc(db, "users", userId);
-      const userDoc = await getDoc(userRef);
-      const saldoAtual = userDoc.data()?.saldo ?? 0;
+      const mult = parseFloat(multiplicadorEl.textContent);
+      const ganhoTotal = valorApostado + (valorApostado * (mult / 5));
+      const uid = auth.currentUser.uid;
+      const userRef = db.collection("users").doc(uid);
 
-      await updateDoc(userRef, {
-        saldo: saldoAtual + premio
+      userRef.get().then(doc => {
+        const saldoAtual = doc.data().saldo || 0;
+        userRef.update({ saldo: saldoAtual + ganhoTotal });
       });
 
-      apostaAtiva = false;
-      retiradaFeita = true;
       valorApostado = 0;
-
-      botaoApostar.disabled = false;
-      valorApostaInput.disabled = false;
-      botaoRetirar.disabled = true;
-      statusApostaEl.textContent = "Aposta retirada! Ganhou: " + premio.toFixed(2);
     });
 
-    // Atualiza status a cada 300ms
-    setInterval(atualizarStatus, 300);
+    const btnAutoAposta = document.getElementById("btnAutoAposta");
 
-    animarMovimentoLento();
+    btnAutoAposta.addEventListener("click", () => {
+      autoApostaAtiva = !autoApostaAtiva;
+      btnAutoAposta.textContent = autoApostaAtiva ? "Desativar Auto Aposta" : "Auto Aposta";
+    });
+
+    function iniciarContagem(valorBase) {
+      intervaloContagem = setInterval(() => {
+        const mult = parseFloat(multiplicadorEl.textContent);
+        const ganhoComBonus = valorBase + (valorBase * (mult / 10));
+        btnApostar.textContent = ` ${ganhoComBonus.toFixed(2)} MZN`;
+        btnApostar.style.backgroundColor = "#00bcd4"; // destaque azul claro
+        btnApostar.style.color = "#000";              // texto escuro para contraste
+      }, 100);
+    }
+
+    // Resetar ao estourar
+    function resetarAposta() {
+      if (emAposta) {
+        clearInterval(intervaloContagem);
+        emAposta = false;
+        valorApostado = 0;
+      }
+
+      btnApostar.textContent = "Apostar";
+      btnApostar.style.backgroundColor = "";
+      btnApostar.style.color = "";
+      btnApostar.disabled = false;
+      inputAposta.disabled = false;
+      btnRetirar.disabled = true;
+    }
+
+    setInterval(atualizarStatus, 100);
+    atualizarStatus();
   </script>
-
 </body>
 </html>
